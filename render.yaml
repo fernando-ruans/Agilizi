@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: starter
     branch: main
-    rootDir: gestao-empresas/backend
+    rootDir: backend
     buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: node dist/server.js
     healthCheckPath: /health
@@ -30,7 +30,7 @@ services:
     name: agilzi-web
     runtime: static
     branch: main
-    rootDir: gestao-empresas/frontend
+    rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     routes:
