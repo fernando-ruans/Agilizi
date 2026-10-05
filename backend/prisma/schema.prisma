@@ -1,0 +1,432 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// COMPANY (Multi-Tenant root)
+// ==========================================
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  tradeName     String?   // nome fantasia
+  document      String?   // CNPJ
+  type          String    @default("ambos") // loja, prestador, ambos
+  phone         String?
+  email         String?
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  logo          String?   // SVG or base64
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  users         User[]
+  clients       Client[]
+  suppliers     Supplier[]
+  services      Service[]
+  products      Product[]
+  budgets       Budget[]
+  orders        Order[]
+  sales         Sale[]
+  cashTransactions CashTransaction[]
+  expenses      Expense[]
+  companySettings CompanySetting[]
+  images        Image[]
+
+  @@map("companies")
+}
+
+// ==========================================
+// AUTH & USERS
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  companyId     String
+  name          String
+  email         String
+  password      String
+  role          String    @default("admin") // admin, gerente, operacional
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  orders        Order[]
+  sales         Sale[]
+  cashTransactions CashTransaction[]
+  expenses      Expense[]
+
+  @@unique([companyId, email])
+  @@map("users")
+}
+
+// ==========================================
+// CLIENTS
+// ==========================================
+
+model Client {
+  id            String    @id @default(cuid())
+  companyId     String
+  name          String
+  email         String?
+  phone         String?
+  document      String?   // CPF or CNPJ
+  documentType  String?   // cpf ou cnpj
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  notes         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  budgets       Budget[]
+  orders        Order[]
+  sales         Sale[]
+
+  @@map("clients")
+}
+
+// ==========================================
+// SUPPLIERS
+// ==========================================
+
+model Supplier {
+  id            String    @id @default(cuid())
+  companyId     String
+  name          String
+  companyName   String?
+  document      String?   // CNPJ
+  email         String?
+  phone         String?
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  notes         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  expenses      Expense[]
+
+  @@map("suppliers")
+}
+
+// ==========================================
+// SERVICES (Prestador de Serviço)
+// ==========================================
+
+model Service {
+  id            String    @id @default(cuid())
+  companyId     String
+  name          String
+  description   String?
+  value         Float
+  category      String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  budgetItems   BudgetItem[]
+  orderItems    OrderItem[]
+
+  @@map("services")
+}
+
+// ==========================================
+// PRODUCTS (Loja)
+// ==========================================
+
+model Product {
+  id            String    @id @default(cuid())
+  companyId     String
+  name          String
+  description   String?
+  price         Float
+  costPrice     Float?    // preço de custo
+  stock         Int       @default(0)
+  minStock      Int       @default(0)
+  barcode       String?
+  category      String?
+  unit          String    @default("un") // un, kg, m, l, etc.
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  saleItems     SaleItem[]
+
+  @@map("products")
+}
+
+// ==========================================
+// BUDGETS (ORÇAMENTOS) - Prestador
+// ==========================================
+
+model Budget {
+  id            String    @id @default(cuid())
+  companyId     String
+  number        Int
+  clientId      String
+  status        String    @default("rascunho") // rascunho, enviado, aprovado, rejeitado, convertido
+  totalValue    Float     @default(0)
+  discount      Float     @default(0)
+  notes         String?
+  validUntil    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  client        Client    @relation(fields: [clientId], references: [id])
+  items         BudgetItem[]
+
+  @@unique([companyId, number])
+  @@map("budgets")
+}
+
+model BudgetItem {
+  id            String    @id @default(cuid())
+  budgetId      String
+  serviceId     String
+  description   String?
+  quantity      Float     @default(1)
+  unitValue     Float
+  totalValue    Float
+
+  // Relations
+  budget        Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  service       Service   @relation(fields: [serviceId], references: [id])
+
+  @@map("budget_items")
+}
+
+// ==========================================
+// ORDERS (ORDENS DE SERVIÇO) - Prestador
+// ==========================================
+
+model Order {
+  id            String    @id @default(cuid())
+  companyId     String
+  number        Int
+  clientId      String
+  userId        String?   // técnico responsável
+  description   String?
+  status        String    @default("aberta") // aberta, em_andamento, concluida, cancelada
+  priority      String    @default("normal") // baixa, normal, alta, urgente
+  startDate     DateTime?
+  endDate       DateTime?
+  totalValue    Float     @default(0)
+  discount      Float     @default(0)
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  client        Client    @relation(fields: [clientId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@unique([companyId, number])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String    @id @default(cuid())
+  orderId       String
+  serviceId     String
+  description   String?
+  quantity      Float     @default(1)
+  unitValue     Float
+  totalValue    Float
+
+  // Relations
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service       Service   @relation(fields: [serviceId], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id            String    @id @default(cuid())
+  orderId       String
+  status        String
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_status_history")
+}
+
+// ==========================================
+// SALES (Vendas) - Loja
+// ==========================================
+
+model Sale {
+  id            String    @id @default(cuid())
+  companyId     String
+  number        Int
+  clientId      String?
+  userId        String?
+  status        String    @default("concluida") // concluida, cancelada
+  totalValue    Float     @default(0)
+  discount      Float     @default(0)
+  paymentMethod String?   // dinheiro, cartao_credito, cartao_debito, pix, boleto
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  client        Client?   @relation(fields: [clientId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+  items         SaleItem[]
+
+  @@unique([companyId, number])
+  @@map("sales")
+}
+
+model SaleItem {
+  id            String    @id @default(cuid())
+  saleId        String
+  productId     String
+  quantity      Float     @default(1)
+  unitValue     Float
+  totalValue    Float
+  // Cost snapshot at sale time — Product.costPrice may change later, but
+  // profit/margin reports must reflect what the goods cost back then.
+  costPrice     Float?
+
+  // Relations
+  sale          Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product       Product   @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+// ==========================================
+// CASH (CAIXA)
+// ==========================================
+
+model CashTransaction {
+  id            String    @id @default(cuid())
+  companyId     String
+  type          String    // entrada, saida
+  category      String    // venda, servico, pagamento, aluguel, fornecedor, salario, outros
+  description   String
+  value         Float
+  date          DateTime  @default(now())
+  paymentMethod String?   // dinheiro, cartao_credito, cartao_debito, pix, transferencia, boleto
+  reference     String?   // referência a OS, venda ou orçamento
+  userId        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+
+  @@map("cash_transactions")
+}
+
+// ==========================================
+// EXPENSES (DESPESAS)
+// ==========================================
+
+model Expense {
+  id            String    @id @default(cuid())
+  // How it was paid — mirrors CashTransaction.paymentMethod so the Caixa
+  // entry generated for paid expenses is never left blank
+  paymentMethod String?
+  companyId     String
+  description   String
+  value         Float
+  category      String    // aluguel, energia, agua, internet, telefone, material, frete, impostos, outros
+  date          DateTime  @default(now())
+  dueDate       DateTime?
+  paidDate      DateTime?
+  status        String    @default("pendente") // pendente, pago, atrasado
+  supplierId    String?
+  userId        String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+
+  @@map("expenses")
+}
+
+// ==========================================
+// COMPANY SETTINGS
+// ==========================================
+
+model CompanySetting {
+  id            String    @id @default(cuid())
+  companyId     String
+  key           String
+  value         String
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company   @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, key])
+  @@map("company_settings")
+}
+
+// Imagens genéricas (produtos, clientes, fornecedores)
+// Usa ownerType + ownerId em vez de FKs diretas para permitir anexar
+// a qualquer entidade sem criar N modelos de join.
+model Image {
+  id        String   @id @default(cuid())
+  companyId String
+  ownerType String // "product" | "client" | "supplier"
+  ownerId   String
+  url       String // URL pública (R2) ou caminho (/uploads/...)
+  fileName  String? // nome original do arquivo
+  mimeType  String?
+  size      Int?     // bytes
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([ownerType, ownerId])
+  @@index([companyId])
+  @@map("images")
+}

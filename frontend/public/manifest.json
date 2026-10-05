@@ -1,0 +1,24 @@
+{
+  "name": "Agilzi",
+  "short_name": "Agilzi",
+  "description": "Gestão Inteligente - Lojas e Prestadores de Serviço",
+  "theme_color": "#1e40af",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

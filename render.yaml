@@ -1,0 +1,44 @@
+# Blueprint Agilzi — API (Node + SQLite em disco) + frontend estático.
+# Uso: Render Dashboard → New → Blueprint → conecte este repositório.
+services:
+  - type: web
+    name: agilzi-api
+    runtime: node
+    plan: starter
+    branch: main
+    rootDir: gestao-empresas/backend
+    buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    disk:
+      name: agilzi-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/dev.db
+      - key: JWT_SECRET
+        generateValue: true
+      # Ajuste após o primeiro deploy para a URL do frontend:
+      - key: FRONTEND_URL
+        value: https://agilzi-web.onrender.com
+        sync: false
+
+  - type: web
+    name: agilzi-web
+    runtime: static
+    branch: main
+    rootDir: gestao-empresas/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      # O frontend chama a API em /api/* (relativo) — repasse ao serviço da API.
+      # Ajuste o destino para a URL real do agilzi-api após o primeiro deploy.
+      - type: rewrite
+        source: /api/*
+        destination: https://agilzi-api.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
