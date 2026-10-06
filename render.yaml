@@ -10,7 +10,9 @@ services:
     plan: free
     branch: main
     rootDir: backend
-    buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
+    # --include=dev: o Render instala só `dependencies` por padrão, mas o
+    # build (tsc) precisa de typescript + @types/* que estão em devDependencies
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: node dist/server.js
     healthCheckPath: /health
     envVars:
