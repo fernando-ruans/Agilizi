@@ -1,0 +1,18 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch();
+const p = await b.newPage();
+const errs = [];
+p.on('pageerror', e => errs.push(String(e).slice(0,150)));
+p.on('response', r => { if (r.url().includes('/api/') && r.status() >= 400) errs.push(r.status() + ' ' + r.url().split('/api')[1]); });
+await p.goto('https://agilzi-web.onrender.com/register', { waitUntil: 'networkidle', timeout: 60000 });
+const s = Date.now();
+await p.locator('#reg-name').fill('Dono Prod');
+await p.locator('#reg-email').fill(`prod${s}@test.com`);
+await p.locator('#reg-password').fill('prod1234');
+await p.getByRole('button', { name: /Próximo/ }).click();
+await p.locator('#reg-company').fill('Prod Co ' + s);
+await p.getByRole('button', { name: /Criar conta/ }).click();
+await p.waitForURL('**/dashboard', { timeout: 60000 });
+await p.getByRole('heading', { name: 'Dashboard' }).waitFor({ timeout: 30000 });
+console.log('PROD-REGISTER=OK errs=' + JSON.stringify(errs));
+await b.close();

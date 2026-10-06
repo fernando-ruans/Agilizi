@@ -1,0 +1,14 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch();
+const p = await b.newPage();
+const bad = [];
+p.on('response', r => { if (r.url().includes('/api/') && r.status() >= 400) bad.push(r.status() + ' ' + r.url().split('.com')[1]); });
+await p.goto('https://agilzi-web.onrender.com/login', { waitUntil: 'domcontentloaded', timeout: 90000 });
+await p.locator('#login-email').fill('dono@agilzi.app');
+await p.locator('#login-password').fill('prod1234');
+await p.getByRole('button', { name: /^entrar$/i }).click();
+await p.waitForURL('**/dashboard', { timeout: 90000 });
+await p.getByRole('heading', { name: 'Dashboard' }).waitFor({ timeout: 120000 });
+await p.screenshot({ path: '/tmp/prod-dash.png' });
+console.log('PROD-OK bad=' + JSON.stringify(bad));
+await b.close();
