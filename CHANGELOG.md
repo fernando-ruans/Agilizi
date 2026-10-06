@@ -2,6 +2,14 @@
 
 > Registro das principais mudanças após cada alteração, para visualização e compreensão futura.
 
+## [2026-10-05] — Lote 11: deploy Render (debug)
+
+### `fix` — Build instalava só `dependencies` (`render.yaml`)
+- `npm install --include=dev`: tsc + `@types/*` vivem em devDependencies.
+
+### `fix` — Migração consolida drift `migrations/20261006_consolidate_schema_drift`
+- Produção falhava com `expenses.paymentMethod` inexistente: `migrate deploy` só conhecia 2 migrations antigas; `db push` local nunca gerou as intermediárias. Nova migração validada via sqlite3 (17 tabelas, colunas OK).
+
 ## [2026-10-05] — Lote 10: painel de auth redesenhado
 
 ### `style` — Fim das “cruzes” (`AuthBrandPanel`)
