@@ -1,24 +1,23 @@
 # Blueprint Agilzi — API (Node + SQLite em disco) + frontend estático.
 # Uso: Render Dashboard → New → Blueprint → conecte este repositório.
+# NOTA: plano Free (teste) — sem disco persistente: o banco SQLite
+# é recriado a cada deploy/sleep. Para produção, volte ao plano
+# Starter + bloco `disk` abaixo.
 services:
   - type: web
     name: agilzi-api
     runtime: node
-    plan: starter
+    plan: free
     branch: main
     rootDir: backend
     buildCommand: npm install && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: node dist/server.js
     healthCheckPath: /health
-    disk:
-      name: agilzi-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:/data/dev.db
+        value: file:./dev.db
       - key: JWT_SECRET
         generateValue: true
       # Ajuste após o primeiro deploy para a URL do frontend:
