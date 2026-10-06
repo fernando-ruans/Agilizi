@@ -24,7 +24,6 @@ services:
       # Ajuste após o primeiro deploy para a URL do frontend:
       - key: FRONTEND_URL
         value: https://agilzi-web.onrender.com
-        sync: false
 
   - type: web
     name: agilzi-web
