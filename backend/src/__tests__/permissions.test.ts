@@ -41,8 +41,8 @@ describe('Role permissions', () => {
       await request(app).get('/api/v1/users').set(auth(admin.token)).expect(200);
     });
 
-    it('gerente cannot list users', async () => {
-      await request(app).get('/api/v1/users').set(auth(gerenteToken)).expect(401);
+    it('gerente can list users (read-only, e.g. technician picker)', async () => {
+      await request(app).get('/api/v1/users').set(auth(gerenteToken)).expect(200);
     });
 
     it('operacional cannot list users', async () => {

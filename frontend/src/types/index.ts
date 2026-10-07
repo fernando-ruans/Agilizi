@@ -5,7 +5,7 @@
 export interface Image {
   id: string;
   companyId: string;
-  ownerType: 'product' | 'client' | 'supplier' | 'company';
+  ownerType: 'product' | 'client' | 'supplier' | 'company' | 'user';
   ownerId: string;
   url: string;
   fileName?: string;
@@ -49,6 +49,7 @@ export interface User {
   role: 'admin' | 'gerente' | 'operacional';
   companyId: string;
   active: boolean;
+  avatar?: string | null;
   createdAt: string;
   updatedAt?: string;
 }

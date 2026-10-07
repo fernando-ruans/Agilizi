@@ -54,6 +54,7 @@ export class AuthController {
           email: user.email,
           role: user.role,
           companyId: user.companyId,
+          avatar: user.avatar,
         },
         company: fullUser?.company ? {
           id: fullUser.company.id,
@@ -112,6 +113,7 @@ export class AuthController {
           email: true,
           role: true,
           companyId: true,
+          avatar: true,
         },
       });
 
@@ -165,6 +167,7 @@ export class AuthController {
         email: true,
         role: true,
         companyId: true,
+        avatar: true,
         createdAt: true,
       },
     });
@@ -235,7 +238,7 @@ export class AuthController {
         ...(name && { name }),
         ...(email && { email }),
       },
-      select: { id: true, name: true, email: true, role: true, companyId: true, active: true },
+      select: { id: true, name: true, email: true, role: true, companyId: true, active: true, avatar: true },
     });
 
     logger.info(`Profile updated for user: ${user.email}`);

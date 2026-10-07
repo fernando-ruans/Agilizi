@@ -131,6 +131,54 @@ describe('Uploads API', () => {
     });
   });
 
+  describe('user avatars (entityType=user)', () => {
+    it('uploads a photo and syncs user.avatar', async () => {
+      const res = await request(app)
+        .post('/api/v1/uploads')
+        .set(auth(tenant.token))
+        .attach('file', await pngFixture(), { filename: 'eu.png', contentType: 'image/png' })
+        .field('entityType', 'user')
+        .field('entityId', tenant.userId);
+      expect(res.status).toBe(201);
+
+      const me = await request(app).get('/api/v1/auth/me').set(auth(tenant.token));
+      expect(me.status).toBe(200);
+      expect(me.body.data.avatar).toBe(res.body.data.url);
+    });
+
+    it('rejects a non-admin uploading to another user photo (403)', async () => {
+      const operEmail = 'oper-' + Date.now() + '@ex.com';
+      const created = await request(app)
+        .post('/api/v1/users')
+        .set(auth(tenant.token))
+        .send({ name: 'Oper', email: operEmail, password: 'secret123', role: 'operacional' });
+      expect(created.status).toBe(201);
+      const operToken = (
+        await request(app).post('/api/v1/auth/login').send({ email: operEmail, password: 'secret123' })
+      ).body.data.token;
+      const res = await request(app)
+        .post('/api/v1/uploads')
+        .set(auth(operToken))
+        .attach('file', await pngFixture(), { filename: 'eu.png', contentType: 'image/png' })
+        .field('entityType', 'user')
+        .field('entityId', tenant.userId);
+      expect(res.status).toBe(403);
+    });
+
+    it('clearing the photo resets user.avatar to null', async () => {
+      const list = await request(app)
+        .get('/api/v1/uploads')
+        .query({ entityType: 'user', entityId: tenant.userId })
+        .set(auth(tenant.token));
+      expect(list.status).toBe(200);
+      for (const img of list.body.data) {
+        await request(app).delete('/api/v1/uploads/' + img.id).set(auth(tenant.token));
+      }
+      const me = await request(app).get('/api/v1/auth/me').set(auth(tenant.token));
+      expect(me.body.data.avatar).toBeNull();
+    });
+  });
+
   describe('GET /api/v1/uploads', () => {
     it('lists images for an entity, scoped by company', async () => {
       const res = await request(app)

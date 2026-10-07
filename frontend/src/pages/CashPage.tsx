@@ -115,7 +115,7 @@ export default function CashPage() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-gray-400 font-medium dark:text-slate-500">Entradas</p>
-                <p className="text-[22px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums mt-1">{formatCurrency(summary.totalEntradas)}</p>
+<p className="text-[22px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums mt-1 break-words">{formatCurrency(summary.totalEntradas)}</p>
                 <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{summary.countEntradas ?? 0} lançamento{summary.countEntradas === 1 ? '' : 's'} no período</p>
               </div>
               <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 dark:bg-emerald-950/60 dark:text-emerald-400">
@@ -128,7 +128,7 @@ export default function CashPage() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-gray-400 font-medium dark:text-slate-500">Saídas</p>
-                <p className="text-[22px] font-semibold text-red-600 dark:text-red-400 tabular-nums mt-1">{formatCurrency(summary.totalSaidas)}</p>
+<p className="text-[22px] font-semibold text-red-600 dark:text-red-400 tabular-nums mt-1 break-words">{formatCurrency(summary.totalSaidas)}</p>
                 <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{summary.countSaidas ?? 0} lançamento{summary.countSaidas === 1 ? '' : 's'} no período</p>
               </div>
               <div className="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 dark:bg-red-950/60 dark:text-red-400">
@@ -141,7 +141,7 @@ export default function CashPage() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-slate-500 font-medium dark:text-slate-400">Saldo do período</p>
-                <p className={`text-[22px] font-semibold tabular-nums mt-1 ${summary.saldo >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(summary.saldo)}</p>
+<p className={`text-[22px] font-semibold tabular-nums mt-1 break-words ${summary.saldo >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(summary.saldo)}</p>
                 <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">Entradas − saídas</p>
               </div>
               <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 dark:bg-slate-800 dark:text-slate-300">

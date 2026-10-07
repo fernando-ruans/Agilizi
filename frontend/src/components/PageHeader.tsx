@@ -11,13 +11,13 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, onAdd, addLabel = 'Novo', showAdd = true }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between mb-5">
-      <div>
+    <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+      <div className="min-w-0">
         <h1 className="text-[20px] font-semibold text-gray-800 tracking-tight dark:text-slate-100">{title}</h1>
         {subtitle && <p className="text-[13px] text-gray-400 mt-0.5 dark:text-slate-500">{subtitle}</p>}
       </div>
       {showAdd && onAdd && (
-        <button onClick={onAdd} className="btn-primary">
+        <button onClick={onAdd} className="btn-primary shrink-0">
           <Plus size={14} />
           {addLabel}
         </button>

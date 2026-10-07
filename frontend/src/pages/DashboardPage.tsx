@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const hasSeries = hasData || chartSeries !== null;
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader title="Dashboard" subtitle="Visão geral da sua operação" showAdd={false} />
 
       <div className="space-y-5">
@@ -165,7 +165,7 @@ export default function DashboardPage() {
               Sem movimento no período selecionado
             </div>
           )}
-          <div className={seriesLoading || !hasData ? 'hidden' : ''}>
+          <div className={`min-w-0 w-full overflow-hidden ${seriesLoading || !hasData ? 'hidden' : ''}`}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={series} barGap={2}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -195,8 +195,9 @@ export default function DashboardPage() {
         <div className="card lg:col-span-3 p-5">
           <h3 className="text-[13px] font-semibold text-gray-700 mb-4 dark:text-slate-200">Ordens por status</h3>
           {orderStatusData.length > 0 ? (
-            <div className="flex items-center gap-6">
-              <ResponsiveContainer width="60%" height={180}>
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div className="min-w-0 w-full sm:w-[60%]">
+              <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
                   <Pie data={orderStatusData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value" strokeWidth={0}>
                     {orderStatusData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
@@ -204,7 +205,8 @@ export default function DashboardPage() {
                   <Tooltip contentStyle={{ fontSize: 12, border: '1px solid #334155', borderRadius: 6, boxShadow: 'none', background: '#0f172a', color: '#e2e8f0' }} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="space-y-2.5">
+              </div>
+              <div className="space-y-2.5 min-w-0">
                 {orderStatusData.map((item, i) => (
                   <div key={item.name} className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
@@ -280,9 +282,9 @@ function CountCard({ icon: Icon, label, value, accent, hideValue, valueText }: {
   icon: React.ElementType; label: string; value: number; accent?: string; hideValue?: boolean; valueText?: string;
 }) {
   return (
-    <div className="card p-4">
+    <div className="card min-w-0 overflow-hidden p-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center shrink-0 dark:bg-slate-800">
+    <div className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center shrink-0 dark:bg-slate-800">
           <Icon size={15} className="text-gray-500 dark:text-slate-400" />
         </div>
         <div className="min-w-0">
@@ -304,11 +306,11 @@ function FinancialCard({ label, value, icon, variant }: { label: string; value: 
   const colors = { green: 'text-emerald-700', red: 'text-red-600' };
   const bgColors = { green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400', red: 'bg-red-50 text-red-500 dark:bg-red-950/60 dark:text-red-400' };
   return (
-    <div className="card p-4">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="card min-w-0 overflow-hidden p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-[11px] text-gray-400 uppercase tracking-wider font-medium dark:text-slate-500">{label}</p>
-          <p className={`text-[16px] font-semibold tabular-nums mt-0.5 ${colors[variant]}`}>{formatCurrency(value)}</p>
+          <p className={`text-[16px] font-semibold tabular-nums mt-0.5 break-words ${colors[variant]}`}>{formatCurrency(value)}</p>
         </div>
         <div className={`w-7 h-7 rounded-full flex items-center justify-center ${bgColors[variant]}`}>{icon}</div>
       </div>

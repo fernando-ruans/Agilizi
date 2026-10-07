@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { UserRound, KeyRound, Building2, Check } from 'lucide-react';
+import { UserRound, KeyRound, Building2, Check, Camera, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,6 +27,55 @@ export default function ProfilePage() {
   // Profile form
   const [savingProfile, setSavingProfile] = useState(false);
   const [profile, setProfile] = useState({ name: '', email: '' });
+
+  // Avatar upload
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshMe = async () => {
+    const r = await api.get('/auth/me');
+    updateUser(r.data.data);
+  };
+
+  const handleAvatar = async (file: File) => {
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      toast.error('Formato inválido. Use JPG, PNG, WebP ou GIF.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande (máx. 5MB).');
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('entityType', 'user');
+      formData.append('entityId', user!.id);
+      await api.post('/uploads', formData);
+      await refreshMe();
+      toast.success('Foto atualizada');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao enviar foto');
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploadingAvatar(true);
+    try {
+      const r = await api.get('/uploads', { params: { entityType: 'user', entityId: user!.id } });
+      await Promise.all(r.data.data.map((img: { id: string }) => api.delete('/uploads/' + img.id)));
+      await refreshMe();
+      toast.success('Foto removida');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao remover foto');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Password form
   const [savingPassword, setSavingPassword] = useState(false);
@@ -97,14 +146,51 @@ export default function ProfilePage() {
         <div className="space-y-6">
           {/* Avatar + basic info */}
           <div className="card p-5 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-slate-800 text-white flex items-center justify-center text-[18px] font-semibold dark:bg-slate-200 dark:text-slate-900">
-              {initials}
+            <div className="relative shrink-0">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={"Foto de " + (user?.name || 'usuário')} className="w-14 h-14 rounded-full object-cover" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-slate-800 text-white flex items-center justify-center text-[18px] font-semibold dark:bg-slate-200 dark:text-slate-900">
+                  {initials}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                title="Alterar foto"
+                aria-label="Alterar foto"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700 transition-colors disabled:opacity-50 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
+              >
+                <Camera size={12} />
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
+                onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
+              />
             </div>
-            <div>
-              <p className="text-[15px] font-semibold text-gray-800 dark:text-slate-100">{user?.name}</p>
-              <p className="text-[13px] text-gray-400 dark:text-slate-500">{user?.email}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-semibold text-gray-800 truncate dark:text-slate-100">{user?.name}</p>
+              <p className="text-[13px] text-gray-400 truncate dark:text-slate-500">{user?.email}</p>
               <span className="badge badge-info mt-1">{roleLabels[user?.role || '']}</span>
             </div>
+            {user?.avatar && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={uploadingAvatar}
+                title="Remover foto"
+                aria-label="Remover foto"
+                className="p-2 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-50 dark:text-slate-500 dark:hover:text-red-400 dark:hover:bg-red-950/50"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
 
           {/* Editable form */}

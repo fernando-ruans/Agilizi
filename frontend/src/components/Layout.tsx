@@ -183,7 +183,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <div className="relative" ref={userMenuRef}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors dark:hover:bg-slate-800">
-                <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[11px] font-semibold dark:bg-slate-800 dark:text-slate-300">{initials}</div>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={"Foto de " + (user?.name || 'usuário')} className="w-7 h-7 rounded-full object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[11px] font-semibold dark:bg-slate-800 dark:text-slate-300">{initials}</div>
+                )}
                 <div className="text-left hidden sm:block">
                   <p className="text-[13px] font-medium text-gray-700 leading-tight dark:text-slate-200">{user?.name}</p>
                   <p className="text-[11px] text-gray-400 leading-tight dark:text-slate-500">{typeLabels[user?.role || '']}</p>
@@ -231,7 +235,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+<main className="flex-1 overflow-y-auto overflow-x-clip p-4 md:p-6 min-w-0">{children}</main>
       </div>
     </div>
   );

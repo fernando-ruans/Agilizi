@@ -221,8 +221,8 @@ export default function ReportsPage() {
       <PageHeader title="Relatórios" subtitle="Gere relatórios em PDF da sua operação" showAdd={false} />
 
       {/* Period selector: presets + custom start/end dates */}
-      <div className="card p-4 mb-6 flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
+      <div className="card min-w-0 p-4 mb-6 flex items-center justify-between flex-wrap gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <span className="text-[13px] font-medium text-gray-600 dark:text-slate-300">Período:</span>
           <DateRangePicker value={range} onChange={setRange} idPrefix="reports" />
         </div>
@@ -247,7 +247,7 @@ export default function ReportsPage() {
                   <div className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${card.color}`}>
                     <Icon size={17} />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-[14px] font-semibold text-gray-800 dark:text-slate-100">{card.title}</h3>
                     <p className="text-[12px] text-gray-400 mt-0.5 dark:text-slate-500">{card.desc}</p>
                     {card.extra && (
@@ -255,7 +255,7 @@ export default function ReportsPage() {
                     )}
                   </div>
                   {card.count !== null && (
-                    <span className="badge badge-gray">{card.count} {card.countLabel || 'registro'}{!card.countLabel && card.count !== 1 ? 's' : ''}{card.countLabel && card.count !== 1 ? 's' : ''}</span>
+                    <span className="badge badge-gray shrink-0">{card.count} {card.countLabel || 'registro'}{!card.countLabel && card.count !== 1 ? 's' : ''}{card.countLabel && card.count !== 1 ? 's' : ''}</span>
                   )}
                 </div>
                 <div className="mt-auto pt-3 border-t border-gray-50">

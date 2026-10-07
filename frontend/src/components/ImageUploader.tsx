@@ -8,7 +8,7 @@ const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface ImageUploaderProps {
-  entityType: 'product' | 'client' | 'supplier' | 'company';
+  entityType: 'product' | 'client' | 'supplier' | 'company' | 'user';
   entityId?: string;
   images?: Image[];
   multiple?: boolean;

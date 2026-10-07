@@ -168,3 +168,31 @@
 - Frontend em `http://localhost:5173` (`vite dev`, proxy `/api` → `:3333`).
 - Preview no painel lateral do Codex (`http://localhost:5173`).
 - Login de teste: `admin@demo.com` / `admin123`.
+## [2026-10-06] — Revisão mobile: fim da rolagem horizontal
+
+### fix — presets com rolagem contida (DateRangePicker)
+- Fileira de chips era flex sem quebra e alargava a página no mobile; agora rola só dentro do card.
+- Inputs de data personalizada dividem a linha em 360 px.
+
+### fix — Dashboard empilha no mobile (DashboardPage)
+- Ordens por status vira coluna abaixo de sm; gráfico de barras com wrapper min-w-0; cards contidos.
+
+### fix — travas globais (index.css, Layout, PageHeader, ReportsPage, CashPage)
+- body overflow-x clip; main overflow-x-clip + min-w-0; PageHeader com quebra; valores do Caixa com quebra.
+
+### test — regressão de overflow (e2e/mobile-overflow.spec.ts)
+- 16 testes em 360 px: scrollWidth <= innerWidth em todas as rotas + Personalizado aberto.
+## [2026-10-07] — Presets com quebra em linhas (DateRangePicker)
+
+- A rolagem contida escondia chips no Caixa; a fileira agora quebra em linhas e mostra todas as opções sem rolagem.
+## [2026-10-07] — Foto do usuário + avatar no sistema
+
+### feat — avatar do usuário (backend + frontend)
+- `users.avatar` (migration `20261007_user_avatar`); upload com `entityType=user` reaproveita o pipeline de imagens (WebP, 5MB, disco) e sincroniza `user.avatar` como o logo da empresa faz.
+- Não-admin só altera a própria foto (403 no resto); login/`/auth/me`/listas de usuários retornam `avatar`.
+- Perfil ganha botão de câmera + remover; topo do Layout e lista de Usuários mostram a foto com fallback de iniciais.
+
+### test — cobertura de avatar + setup resiliente
+- Novos testes: upload sincroniza `avatar`, 403 para foto alheia, remoção zera `avatar`.
+- `globalSetup` com fallback: se `prisma db push` falhar (schema engine), aplica o SQL das migrations direto.
+- `permissions.test.ts` alinhado à rota: gerente pode listar usuários (só leitura, picker de técnico).

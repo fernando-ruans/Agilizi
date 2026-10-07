@@ -63,7 +63,18 @@ export default function UsersPage() {
   const reset = () => { setSelected(null); setFormData({ name: '', email: '', password: '', role: 'operacional' }); };
 
   const columns = [
-    { key: 'name', label: 'Nome', render: (i: User) => <span className="font-medium">{i.name}</span> },
+    { key: 'name', label: 'Nome', render: (i: User) => (
+      <span className="flex items-center gap-2.5">
+        {i.avatar ? (
+          <img src={i.avatar} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+        ) : (
+          <span className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-semibold shrink-0 dark:bg-slate-800 dark:text-slate-300">
+            {i.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+          </span>
+        )}
+        <span className="font-medium">{i.name}</span>
+      </span>
+    ) },
     { key: 'email', label: 'Email' },
     { key: 'role', label: 'Perfil', render: (i: User) => <span className="badge badge-info">{roleLabels[i.role]}</span> },
     { key: 'active', label: 'Status', render: (i: User) => <span className={i.active ? 'badge-success' : 'badge-danger'}>{i.active ? 'Ativo' : 'Inativo'}</span> },

@@ -118,14 +118,14 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
 
   return (
     <div className={compact ? 'flex flex-wrap items-center gap-1.5' : 'flex flex-wrap items-center gap-2'}>
-      <div className="flex gap-1" role="group" aria-label="Período">
+      <div className="flex max-w-full flex-wrap items-center gap-1" role="group" aria-label="Período">
         {presets.map((p) => (
           <button
             key={p.key}
             type="button"
             onClick={() => selectPreset(p.key)}
             aria-pressed={value.preset === p.key}
-            className={`rounded-md font-medium transition-colors ${size} ${
+            className={`rounded-md font-medium transition-colors shrink-0 ${size} ${
               value.preset === p.key
                 ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -138,7 +138,7 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
           type="button"
           onClick={() => selectPreset('custom')}
           aria-pressed={value.preset === 'custom'}
-          className={`rounded-md font-medium transition-colors inline-flex items-center gap-1 ${size} ${
+          className={`rounded-md font-medium transition-colors shrink-0 inline-flex items-center gap-1 ${size} ${
             value.preset === 'custom'
               ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -151,7 +151,7 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
       </div>
 
       {customOpen && (
-        <div className="flex items-center gap-1.5 animate-fade-in">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 animate-fade-in">
           <label htmlFor={`${idPrefix}-start`} className="sr-only">Data inicial</label>
           <input
             id={`${idPrefix}-start`}
@@ -159,10 +159,10 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
             value={value.preset === 'custom' ? value.startDate : ''}
             max={value.preset === 'custom' ? value.endDate : undefined}
             onChange={(e) => updateCustom({ startDate: e.target.value })}
-            className="input w-[9.5rem] !py-1.5 !text-[12px]"
+            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px]"
             aria-label="Data inicial"
           />
-          <span className="text-[12px] text-gray-400 dark:text-slate-500">até</span>
+          <span className="text-[12px] text-gray-400 shrink-0 dark:text-slate-500">até</span>
           <label htmlFor={`${idPrefix}-end`} className="sr-only">Data final</label>
           <input
             id={`${idPrefix}-end`}
@@ -170,7 +170,7 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
             value={value.preset === 'custom' ? value.endDate : ''}
             min={value.preset === 'custom' ? value.startDate : undefined}
             onChange={(e) => updateCustom({ endDate: e.target.value })}
-            className="input w-[9.5rem] !py-1.5 !text-[12px]"
+            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px]"
             aria-label="Data final"
           />
         </div>
