@@ -198,4 +198,4 @@
 - `permissions.test.ts` alinhado à rota: gerente pode listar usuários (só leitura, picker de técnico).
 ## [2026-10-07] — Rodapé do app (Layout)
 
-+- Rodapé discreto abaixo do conteúdo: marca + nome da empresa, sem altura fixa nem overflow no mobile.
++- Rodapé discreto abaixo do conteúdo (só marca, sem duplicar o nome da empresa); shell trava a rolagem do documento para o rodapé nunca descolar da base.

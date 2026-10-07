@@ -52,6 +52,22 @@ test.describe('Mobile sem rolagem horizontal (autenticadas)', () => {
     });
   }
 
+  test('shell: documento não rola e rodapé fica preso', async ({ page }) => {
+    await page.goto('/configuracoes');
+    await page.waitForLoadState('networkidle');
+    // A rolagem de usuário (roda do mouse/toque) pertence só ao <main>;
+    // o documento não pode se mover nem tirar o rodapé da base.
+    await page.mouse.move(180, 40);
+    await page.mouse.wheel(0, 3000);
+    await page.waitForTimeout(400);
+    const info = await page.evaluate(function () {
+      const f = document.querySelector('footer').getBoundingClientRect();
+      return { scrollY: window.scrollY, footerBottom: Math.round(f.bottom), innerHeight: window.innerHeight };
+    });
+    expect(info.scrollY).toBe(0);
+    expect(info.footerBottom).toBe(info.innerHeight);
+  });
+
   test('dashboard com Personalizado aberto', async ({ page }) => {
     await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
