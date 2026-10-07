@@ -235,7 +235,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-<main className="flex-1 overflow-y-auto overflow-x-clip p-4 md:p-6 min-w-0">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-clip p-4 md:p-6 min-w-0">{children}</main>
+
+        <footer className="shrink-0 border-t border-gray-200 bg-white px-4 md:px-6 py-2.5 dark:bg-slate-900 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-gray-400 dark:text-slate-500">
+            <span className="inline-flex items-center gap-1.5 min-w-0">
+              <img src="/logo.svg" alt="" aria-hidden="true" width={13} height={13} draggable={false} className="shrink-0 text-slate-400 dark:text-slate-500" />
+              <span className="truncate">Agilzi · gestão local</span>
+            </span>
+            {company && <span className="truncate">{company.tradeName || company.name}</span>}
+          </div>
+        </footer>
       </div>
     </div>
   );

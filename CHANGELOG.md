@@ -196,3 +196,6 @@
 - Novos testes: upload sincroniza `avatar`, 403 para foto alheia, remoção zera `avatar`.
 - `globalSetup` com fallback: se `prisma db push` falhar (schema engine), aplica o SQL das migrations direto.
 - `permissions.test.ts` alinhado à rota: gerente pode listar usuários (só leitura, picker de técnico).
+## [2026-10-07] — Rodapé do app (Layout)
+
++- Rodapé discreto abaixo do conteúdo: marca + nome da empresa, sem altura fixa nem overflow no mobile.
