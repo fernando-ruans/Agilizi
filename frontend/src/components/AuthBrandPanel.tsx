@@ -24,14 +24,14 @@ export default function AuthBrandPanel({
         }}
       />
       <img
-        src="/logo.svg"
+        src="/logo-sidebar-encolhida.png"
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="absolute -right-28 -bottom-28 w-[520px] max-w-none text-white opacity-[0.05] pointer-events-none select-none"
+        className="absolute -right-28 -bottom-28 w-[520px] max-w-none opacity-[0.07] pointer-events-none select-none"
       />
       <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-        <Brand onDark markSize={44} wordmarkSize={19} />
+        <Brand height={38} />
         <div>
           <h2 className="font-display text-[30px] font-medium leading-[1.15] tracking-tight max-w-sm">
             {headline}
@@ -40,7 +40,7 @@ export default function AuthBrandPanel({
             {description}
           </p>
         </div>
-        <p className="text-[12px] text-slate-500">© {new Date().getFullYear()} Agilzi</p>
+        <p className="text-[12px] text-slate-500">© {new Date().getFullYear()} Agilizi</p>
       </div>
     </div>
   );

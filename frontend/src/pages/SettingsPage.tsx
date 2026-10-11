@@ -140,7 +140,7 @@ export default function SettingsPage() {
       {tab === 'sobre' && (
         <div className="card p-5 space-y-4 max-w-lg">
           <h3 className="text-[13px] font-semibold text-gray-700 flex items-center gap-2 dark:text-slate-200">
-            <Info size={14} /> Sobre o Agilzi
+            <Info size={14} /> Sobre o Agilizi
           </h3>
           <div className="space-y-3 text-[13px] text-gray-600 dark:text-slate-400">
             <div className="flex justify-between border-b border-gray-50 pb-2 dark:border-slate-800"><span className="text-gray-400 dark:text-slate-500">Versão</span><span className="font-medium">1.0.0</span></div>

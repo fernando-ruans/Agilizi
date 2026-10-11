@@ -138,11 +138,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           {!collapsed && (
             <div className="flex items-center gap-2.5">
-              <Brand markSize={26} wordmarkSize={15} />
+              <Brand height={24} />
             </div>
           )}
           {collapsed && (
-            <img src="/logo.svg" alt="Agilzi" width={24} height={24} draggable={false} className="hidden md:block text-slate-800 dark:text-slate-100" />
+            <img src="/logo-sidebar-encolhida.png" alt="Agilizi" width={24} height={21} draggable={false} className="hidden md:block" />
           )}
           <button onClick={() => setCollapsed(!collapsed)} className="hidden md:block text-gray-400 hover:text-gray-600 transition-colors p-1 rounded dark:text-slate-500 dark:hover:text-slate-300" aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}>
             {collapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
@@ -255,8 +255,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <footer className="shrink-0 border-t border-gray-200 bg-white px-4 md:px-6 py-2.5 dark:bg-slate-900 dark:border-slate-800">
           <div className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-slate-500">
-            <img src="/logo.svg" alt="" aria-hidden="true" width={13} height={13} draggable={false} className="shrink-0 text-slate-400 dark:text-slate-500" />
-            <span className="truncate">Agilzi · gestão local</span>
+            <img src="/logo-sidebar-encolhida.png" alt="" aria-hidden="true" width={13} height={11} draggable={false} className="shrink-0" />
+            <span className="truncate">Agilizi · gestão local</span>
           </div>
         </footer>
       </div>

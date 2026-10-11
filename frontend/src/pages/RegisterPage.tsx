@@ -74,7 +74,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-[420px]">
           <div className="lg:hidden flex items-center gap-2.5 mb-10">
-            <Brand markSize={34} wordmarkSize={18} />
+            <Brand height={34} />
           </div>
 
           <div className="mb-8">

@@ -114,8 +114,8 @@ describe('Layout user dropdown', () => {
     expect(topbar?.querySelector('h1')).toBeNull();
   });
 
-  it('renders the Agilzi brand', () => {
+  it('renders the Agilizi brand', () => {
     renderLayout();
-    expect(screen.getByText('Agilzi')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Agilizi' })).toBeInTheDocument();
   });
 });

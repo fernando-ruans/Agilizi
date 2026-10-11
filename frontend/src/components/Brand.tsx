@@ -1,39 +1,37 @@
 /**
- * Agilzi brand lockup: geometric Λ mark (currentColor legs, amber
- * momentum bar) + Fraunces wordmark. Single owner for every brand
- * surface (sidebar, auth panels, mobile headers) so the identity
- * cannot drift screen by screen.
+ * Lockup oficial do Agilizi: PNG por tema (logo-tema-claro / logo-tema-escuro),
+ * alternado via classes dark:. Largura e altura sempre explícitas na proporção
+ * 3.74:1 da arte — a imagem nunca estica, independente do container flex.
  */
-export default function Brand({
-  markSize = 28,
-  wordmark = true,
-  onDark = false,
-  wordmarkSize = 16,
-}: {
-  markSize?: number;
-  wordmark?: boolean;
-  onDark?: boolean;
-  wordmarkSize?: number;
-}) {
+const RATIO = 2021 / 540;
+
+export default function Brand({ height = 28 }: { height?: number }) {
+  const width = Math.round(height * RATIO);
   return (
-    <span className="inline-flex items-center gap-2.5">
+    <span
+      role="img"
+      aria-label="Agilizi"
+      className="inline-flex shrink-0 items-center"
+      style={{ width, height }}
+    >
       <img
-        src="/logo.svg"
+        src="/logo-tema-claro.png"
         alt=""
-        aria-hidden="true"
-        width={markSize}
-        height={markSize}
+        width={width}
+        height={height}
         draggable={false}
-        className={`shrink-0 ${onDark ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}
+        style={{ width, height }}
+        className="block dark:hidden"
       />
-      {wordmark && (
-        <span
-          className={`font-display font-semibold tracking-tight leading-none ${onDark ? 'text-white' : 'text-gray-800 dark:text-slate-100'}`}
-          style={{ fontSize: wordmarkSize }}
-        >
-          Agilzi
-        </span>
-      )}
+      <img
+        src="/logo-tema-escuro.png"
+        alt=""
+        width={width}
+        height={height}
+        draggable={false}
+        style={{ width, height }}
+        className="hidden dark:block"
+      />
     </span>
   );
 }

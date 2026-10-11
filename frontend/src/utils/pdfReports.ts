@@ -66,7 +66,7 @@ function header(meta: ReportMeta): Content[] {
             { text: meta.companyName, style: 'companyName' },
             contact.length > 0
               ? { text: contact.join('\n'), style: 'companyContact' }
-              : { text: 'Agilzi — Sistema de Gestão', style: 'systemName' },
+              : { text: 'Agilizi — Sistema de Gestão', style: 'systemName' },
           ],
         },
         {
@@ -244,7 +244,7 @@ function docHeader(issuer: Issuer, docTitle: string, docNumber: string): Content
             { text: issuer.companyName, style: 'companyName' },
             contact.length > 0
               ? { text: contact.join('\n'), style: 'companyContact' }
-              : { text: 'Agilzi — Sistema de Gestão', style: 'systemName' },
+              : { text: 'Agilizi — Sistema de Gestão', style: 'systemName' },
           ],
         },
         {

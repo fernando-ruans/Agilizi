@@ -40,7 +40,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-[360px]">
           <div className="lg:hidden flex items-center gap-2.5 mb-10">
-            <Brand markSize={30} wordmarkSize={17} />
+            <Brand height={30} />
           </div>
 
           <div className="mb-8">
