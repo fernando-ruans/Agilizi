@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="frontend/public/favicon.svg" alt="Agilzi" width="160"/>
+<img src="frontend/public/logo-tema-claro.png" alt="Agilizi" width="360"/>
 
-# Agilzi
+# Agilizi
 
 **Gestão local para lojas e prestadores de serviço.**
 
@@ -113,7 +113,7 @@ O caixa nunca é digitado à toa: vendas, OS concluídas e despesas pagas criam/
 ## Estrutura do projeto
 
 ```
-gestao-empresas/
+Agilizi/
 ├── backend/          # API REST (src/, prisma/, uploads/)
 ├── frontend/         # App React (pages/, components/, e2e/)
 ├── DESIGN.md         # memória de gosto (identidade, tipo, cor)
