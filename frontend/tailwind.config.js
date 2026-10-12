@@ -36,12 +36,6 @@ export default {
           'Roboto',
           'sans-serif',
         ],
-        display: [
-          'Fraunces Variable',
-          'Fraunces',
-          'Georgia',
-          'serif',
-        ],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {

@@ -159,7 +159,7 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
             value={value.preset === 'custom' ? value.startDate : ''}
             max={value.preset === 'custom' ? value.endDate : undefined}
             onChange={(e) => updateCustom({ startDate: e.target.value })}
-            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px]"
+            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px] max-sm:!text-base"
             aria-label="Data inicial"
           />
           <span className="text-[12px] text-gray-400 shrink-0 dark:text-slate-500">até</span>
@@ -170,7 +170,7 @@ export function DateRangePicker({ value, onChange, idPrefix = 'range', compact =
             value={value.preset === 'custom' ? value.endDate : ''}
             min={value.preset === 'custom' ? value.startDate : undefined}
             onChange={(e) => updateCustom({ endDate: e.target.value })}
-            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px]"
+            className="input min-w-0 flex-1 sm:w-[9.5rem] sm:flex-none !py-1.5 !text-[12px] max-sm:!text-base"
             aria-label="Data final"
           />
         </div>
