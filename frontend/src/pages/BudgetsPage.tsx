@@ -7,7 +7,7 @@ import { getPdf, issuerFromCompany } from '../utils/lazyPdf';
 import type { Budget, Client, Service } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 const statusLabels: Record<string, { label: string; class: string }> = {
@@ -29,6 +29,9 @@ export default function BudgetsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [convertTarget, setConvertTarget] = useState<Budget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Budget | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const { company } = useAuth();
   const [selected, setSelected] = useState<Budget | null>(null);
   const [clientId, setClientId] = useState('');
@@ -85,13 +88,16 @@ export default function BudgetsPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao criar'); }
   };
 
-  const handleConvert = async (id: string) => {
-    if (!confirm('Converter orçamento aprovado em Ordem de Serviço?')) return;
+  const handleConvert = async () => {
+    if (!convertTarget) return;
+    setConfirmBusy(true);
     try {
-      await api.post(`/budgets/${id}/convert-to-order`);
-      toast.success('Convertido em OS!');
+      await api.post(`/budgets/${convertTarget.id}/convert-to-order`);
+      toast.success('Orçamento convertido em OS!');
+      setConvertTarget(null);
       load();
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao converter'); }
+    finally { setConfirmBusy(false); }
   };
 
   const handleStatus = async (id: string, status: 'aprovado' | 'rejeitado') => {
@@ -132,10 +138,17 @@ export default function BudgetsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Remover orçamento?')) return;
-    try { await api.delete(`/budgets/${id}`); toast.success('Removido!'); load(); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setConfirmBusy(true);
+    try {
+      await api.delete(`/budgets/${deleteTarget.id}`);
+      toast.success('Orçamento removido!');
+      setDeleteTarget(null);
+      load();
+    }
     catch { toast.error('Erro ao remover'); }
+    finally { setConfirmBusy(false); }
   };
 
   const reset = () => { setSelected(null); setClientId(''); setItems([]); setNotes(''); setDiscount(0); setValidUntil(''); };
@@ -149,8 +162,8 @@ export default function BudgetsPage() {
     { key: 'actions', label: 'Ações', render: (i: Budget) => (
       <div className="flex gap-2">
         <button onClick={() => { setSelected(i); setViewOpen(true); }} className="text-blue-600 hover:text-blue-800" title="Ver detalhes"><Eye size={16} /></button>
-        {i.status === 'aprovado' && <button onClick={() => handleConvert(i.id)} className="text-green-600 hover:text-green-800" title="Converter em OS"><ArrowRight size={16} /></button>}
-        {i.status !== 'convertido' && <button onClick={() => handleDelete(i.id)} className="text-red-600 hover:text-red-800"><Trash2 size={16} /></button>}
+        {i.status === 'aprovado' && <button onClick={() => setConvertTarget(i)} className="text-green-600 hover:text-green-800" title="Converter em OS"><ArrowRight size={16} /></button>}
+        {i.status !== 'convertido' && <button onClick={() => setDeleteTarget(i)} className="text-red-600 hover:text-red-800" title="Remover"><Trash2 size={16} /></button>}
       </div>
     )},
   ];
@@ -268,6 +281,28 @@ export default function BudgetsPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        isOpen={!!convertTarget}
+        onClose={() => setConvertTarget(null)}
+        onConfirm={handleConvert}
+        title="Converter em OS"
+        message={`Converter o orçamento #${convertTarget ? String(convertTarget.number).padStart(4, '0') : ''} em ordem de serviço?`}
+        details="Os itens e valores são levados para a OS. O orçamento passa a convertido."
+        confirmLabel="Converter em OS"
+        variant="default"
+        loading={confirmBusy && !!convertTarget}
+      />
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Remover orçamento"
+        message={`Remover o orçamento #${deleteTarget ? String(deleteTarget.number).padStart(4, '0') : ''}?`}
+        details="O registro sai da lista. Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        variant="danger"
+        loading={confirmBusy && !!deleteTarget}
+      />
     </div>
   );
 }

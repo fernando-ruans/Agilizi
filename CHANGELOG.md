@@ -2,6 +2,17 @@
 
 > Registro das principais mudanças após cada alteração, para visualização e compreensão futura.
 
+## [2026-10-12] — Lote 13: confirmações profissionais + assistente redesenhado
+
+### `style` — Fim do `confirm()` nativo (ConfirmDialog em 10 telas)
+- `ConfirmDialog` promovido a padrão único: ícone por tom (alerta/pergunta/sucesso), mensagem + linha de consequência (`details`), foco automático no confirmar, Escape/backdrop, claro e escuro.
+- Migradas Caixa, Despesas (pagar + remover), Fornecedores, Usuários, Orçamentos (converter em OS + remover), Serviços e OS (iniciar/concluir/cancelar) — Clientes, Produtos e Vendas já usavam.
+- Validação: suíte frontend 86/86 verde, typecheck limpo, conferência visual no preview (diálogo "Remover serviço", cancelado sem alterar nada).
+
+### `style` — Painel do assistente reestruturado
+- Cabeçalho com avatar e status ("Online • usa os dados da sua empresa"), lista de conversas com estado vazio e CTA, boas-vindas com 3 sugestões clicáveis que enviam direto, mensagens com avatar, cartões de confirmação com selo de ferramenta + selo "irreversível" no destrutivo e loading por ação, rodapé de confiança ("nada muda sem confirmação").
+- Testes novos: sugestão envia a mensagem exata, selo irreversível no destrutivo, `details` no ConfirmDialog (16/16 nos dois arquivos).
+
 ## [2026-10-12] — Lote 12: assistente de IA (estilo Kilo Code auto/free)
 
 ### `feat` — Bot em painel flutuante com contexto total e escrita confirmada

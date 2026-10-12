@@ -6,7 +6,7 @@ import api from '../services/api';
 import type { CashTransaction, CashSummary } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { Field, FieldGrid } from '../components/DetailFields';
 import { DateRangePicker, DEFAULT_RANGE, applyPreset, rangeParams, type DateRangeValue } from '../components/DateRangePicker';
 import { parseCashReference } from '../utils/sourceLinks';
@@ -38,6 +38,8 @@ export default function CashPage() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [modalOpen, setModalOpen] = useState(false);
   const [viewTarget, setViewTarget] = useState<CashTransaction | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CashTransaction | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const [formData, setFormData] = useState({ type: 'entrada', category: 'venda', description: '', value: 0, paymentMethod: 'pix', reference: '' });
 
   useEffect(() => { load(); loadSummary(); }, [page, filterType, filterCategory, filterPayment, search, range]);
@@ -75,10 +77,16 @@ export default function CashPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao registrar'); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Remover transação?')) return;
-    try { await api.delete(`/cash/${id}`); toast.success('Removida!'); load(); loadSummary(); }
-    catch { toast.error('Erro ao remover'); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setConfirmBusy(true);
+    try {
+      await api.delete(`/cash/${deleteTarget.id}`);
+      toast.success('Transação removida!');
+      setDeleteTarget(null);
+      load(); loadSummary();
+    } catch { toast.error('Erro ao remover'); }
+    finally { setConfirmBusy(false); }
   };
 
   const columns = [
@@ -99,7 +107,7 @@ export default function CashPage() {
     { key: 'actions', label: 'Ações', render: (i: CashTransaction) => (
       <div className="flex gap-1">
         <button onClick={() => setViewTarget(i)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300" title="Ver detalhes"><Eye size={16} /></button>
-        <button onClick={() => handleDelete(i.id)} className="text-red-600 hover:text-red-800"><Trash2 size={16} /></button>
+        <button onClick={() => setDeleteTarget(i)} className="text-red-600 hover:text-red-800" title="Remover"><Trash2 size={16} /></button>
       </div>
     )},
   ];
@@ -279,6 +287,17 @@ export default function CashPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Remover transação"
+        message={`Remover "${deleteTarget?.description || 'esta transação'}" do caixa?`}
+        details="O lançamento sai do extrato e dos totais. Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        variant="danger"
+        loading={confirmBusy}
+      />
     </div>
   );
 }

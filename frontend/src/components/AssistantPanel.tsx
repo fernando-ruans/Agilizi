@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Sparkles, X, Send, Plus, Trash2, Check, ChevronLeft } from 'lucide-react';
+import { Sparkles, X, Send, Plus, Trash2, Check, ChevronLeft, MessageSquareText, ShieldAlert, ClipboardCheck } from 'lucide-react';
 import api from '../services/api';
 
 interface ProposedAction {
@@ -31,6 +31,12 @@ interface ThreadDetail extends Thread {
 function token(): string {
   return localStorage.getItem('agilzi_token') || '';
 }
+
+const SUGGESTIONS = [
+  'Quanto vendi este mês?',
+  'Quais produtos estão com estoque baixo?',
+  'Liste meus clientes com nome e email',
+];
 
 async function streamChat(threadId: string, message: string, route: string, onToken: (t: string) => void) {
   const res = await fetch('/api/v1/assistant/threads/' + threadId + '/chat', {
@@ -77,6 +83,7 @@ export default function AssistantPanel() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [streaming, setStreaming] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
   const location = useLocation();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -131,8 +138,8 @@ export default function AssistantPanel() {
     refreshThreads().catch(() => undefined);
   }, [threadId, refreshThreads]);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
+  const send = useCallback(async (preset?: string) => {
+    const text = (preset !== undefined ? preset : input).trim();
     if (!text || sending) return;
     let tid = threadId;
     if (!tid) {
@@ -169,6 +176,8 @@ export default function AssistantPanel() {
   }, [input, sending, threadId, location.pathname, refreshThreads]);
 
   const decide = useCallback(async (id: string, ok: boolean) => {
+    if (busyId) return;
+    setBusyId(id);
     try {
       const res = await api.post('/assistant/actions/' + id + (ok ? '/confirm' : '/reject'), {});
       setPending((p) => p.filter((a) => a.id !== id));
@@ -196,8 +205,10 @@ export default function AssistantPanel() {
             (String(msg).includes('já decidida') ? ' Peça novamente no chat para gerar um novo cartão.' : ''),
         },
       ]);
+    } finally {
+      setBusyId(null);
     }
-  }, []);
+  }, [busyId]);
 
   return (
     <>
@@ -205,17 +216,23 @@ export default function AssistantPanel() {
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? 'Fechar assistente' : 'Abrir assistente de IA'}
         title="Assistente de IA"
-        className="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-slate-800 text-white shadow-dropdown transition-transform hover:scale-105 active:scale-95 dark:bg-slate-200 dark:text-slate-900"
+        className="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-slate-800 text-white shadow-dropdown ring-1 ring-slate-900/10 transition-transform hover:scale-105 active:scale-95 dark:bg-slate-200 dark:text-slate-900 dark:ring-white/20"
       >
         {open ? <X size={20} /> : <Sparkles size={20} />}
+        {!open && enabled && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900" />
+          </span>
+        )}
       </button>
       {open && (
         <div
           role="dialog"
           aria-label="Assistente de IA"
-          className="fixed bottom-[76px] right-4 z-50 flex h-[min(560px,calc(100vh-120px))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-modal sm:right-5 sm:w-[400px] dark:border-slate-700 dark:bg-slate-900"
+          className="fixed bottom-[76px] right-4 z-50 flex h-[min(600px,calc(100vh-120px))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-modal sm:right-5 sm:w-[420px] dark:border-slate-700 dark:bg-slate-900"
         >
-          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
+          <div className="flex items-center gap-2.5 border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/50">
             {threadId && (
               <button
                 onClick={() => { setThreadId(null); setMessages([]); setPending([]); }}
@@ -225,8 +242,16 @@ export default function AssistantPanel() {
                 <ChevronLeft size={16} />
               </button>
             )}
-            <Sparkles size={15} className="text-slate-500 dark:text-slate-400" />
-            <p className="flex-1 text-[13px] font-semibold text-gray-800 dark:text-slate-100">Assistente</p>
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900" aria-hidden="true">
+              <Sparkles size={15} />
+            </span>
+            <div className="min-w-0 flex-1 leading-tight">
+              <p className="truncate text-[13px] font-semibold text-gray-800 dark:text-slate-100">Assistente Agilizi</p>
+              <p className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-slate-500">
+                <span className={'inline-block h-1.5 w-1.5 rounded-full ' + (enabled === false ? 'bg-gray-300 dark:bg-slate-600' : 'bg-emerald-500')} aria-hidden="true" />
+                {enabled === false ? 'Desativado' : 'Online • usa os dados da sua empresa'}
+              </p>
+            </div>
             <button
               onClick={newThread}
               aria-label="Nova conversa"
@@ -249,21 +274,34 @@ export default function AssistantPanel() {
               </p>
             </div>
           ) : !threadId ? (
-            <div className="flex-1 overflow-y-auto p-2">
+            <div className="flex-1 overflow-y-auto p-3">
+              <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                Conversas
+              </p>
               {threads.length === 0 && (
-                <p className="px-3 py-8 text-center text-[13px] text-gray-400 dark:text-slate-500">
-                  Pergunte sobre vendas, estoque, caixa ou peça para lançar algo — eu proponho e você confirma.
-                </p>
+                <div className="flex flex-col items-center px-4 py-10 text-center">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" aria-hidden="true">
+                    <MessageSquareText size={20} />
+                  </span>
+                  <p className="mt-3 text-[13px] font-medium text-gray-600 dark:text-slate-300">Nenhuma conversa ainda</p>
+                  <p className="mt-1 max-w-[260px] text-[12px] leading-5 text-gray-400 dark:text-slate-500">
+                    Pergunte sobre vendas, estoque, caixa ou peça para lançar algo — eu proponho e você confirma.
+                  </p>
+                  <button onClick={newThread} className="btn-primary btn-sm mt-4">
+                    <Plus size={13} /> Começar agora
+                  </button>
+                </div>
               )}
               {threads.map((t) => (
-                <div key={t.id} className="group flex items-center gap-1 rounded-md px-2 py-2 hover:bg-gray-50 dark:hover:bg-slate-800">
+                <div key={t.id} className="group flex items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 hover:border-gray-100 hover:bg-gray-50 dark:hover:border-slate-800 dark:hover:bg-slate-800/60">
+                  <MessageSquareText size={14} className="shrink-0 text-gray-300 dark:text-slate-600" aria-hidden="true" />
                   <button onClick={() => openThread(t.id)} className="min-w-0 flex-1 truncate text-left text-[13px] text-gray-700 dark:text-slate-200">
-                    {t.title}
+                    {t.title || 'Conversa sem título'}
                   </button>
                   <button
                     onClick={() => deleteThread(t.id)}
                     aria-label={'Excluir conversa ' + t.title}
-                    className="rounded p-1 text-gray-300 opacity-0 hover:text-red-500 group-hover:opacity-100 dark:text-slate-600"
+                    className="rounded p-1 text-gray-300 opacity-0 hover:bg-red-50 hover:text-red-500 focus:opacity-100 group-hover:opacity-100 dark:text-slate-600 dark:hover:bg-red-950/40"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -273,18 +311,42 @@ export default function AssistantPanel() {
           ) : (
             <>
               <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
-                {messages.map((m) => (
-                  <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
-                    <div
-                      className={
-                        m.role === 'user'
-                          ? 'max-w-[85%] whitespace-pre-wrap rounded-lg rounded-br-sm bg-slate-800 px-3 py-2 text-[13px] text-white dark:bg-slate-200 dark:text-slate-900'
-                          : 'max-w-[92%] whitespace-pre-wrap rounded-lg rounded-bl-sm border border-gray-100 bg-gray-50 px-3 py-2 text-[13px] text-gray-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200'
-                      }
-                    >
-                      {m.content}
+                {messages.length === 0 && !sending && !streaming && (
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/40">
+                    <p className="text-[13px] font-medium leading-5 text-gray-700 dark:text-slate-200">
+                      Olá! Consulto vendas, estoque, caixa e clientes — e preparo lançamentos para você confirmar.
+                    </p>
+                    <p className="mt-1 text-[12px] text-gray-400 dark:text-slate-500">Comece por uma sugestão:</p>
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {SUGGESTIONS.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => send(s)}
+                          className="rounded-full border border-gray-200 bg-white px-2.5 py-1.5 text-left text-[12px] text-gray-600 transition-colors hover:border-slate-300 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+                        >
+                          {s}
+                        </button>
+                      ))}
                     </div>
                   </div>
+                )}
+                {messages.map((m) => (
+                  m.role === 'user' ? (
+                    <div key={m.id} className="flex justify-end">
+                      <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-slate-800 px-3.5 py-2 text-[13px] leading-5 text-white dark:bg-slate-200 dark:text-slate-900">
+                        {m.content}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={m.id} className="flex items-start justify-start gap-1.5">
+                      <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" aria-hidden="true">
+                        <Sparkles size={12} />
+                      </span>
+                      <div className="max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-gray-100 bg-white px-3.5 py-2 text-[13px] leading-5 text-gray-700 shadow-card dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200 dark:shadow-none">
+                        {m.content}
+                      </div>
+                    </div>
+                  )
                 ))}
                 {sending && !streaming && (
                   <div className="flex justify-start">
@@ -315,17 +377,52 @@ export default function AssistantPanel() {
                   </div>
                 )}
                 {pending.map((a) => (
-                  <div key={a.id} className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40">
-                    <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300">
-                      {a.destructive ? 'Confirmar ação destrutiva' : 'Confirmar ação'}
-                    </p>
-                    <p className="mt-1 text-[13px] text-gray-700 dark:text-slate-200">{a.summary}</p>
-                    <p className="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-slate-500">{a.tool}</p>
-                    <div className="mt-2 flex gap-2">
-                      <button onClick={() => decide(a.id, true)} className="btn-primary btn-sm flex-1">
-                        <Check size={13} /> Confirmar
+                  <div
+                    key={a.id}
+                    className={
+                      a.destructive
+                        ? 'rounded-xl border border-red-200 bg-red-50/60 p-3.5 dark:border-red-900/70 dark:bg-red-950/30'
+                        : 'rounded-xl border border-slate-200 bg-white p-3.5 shadow-card dark:border-slate-700 dark:bg-slate-800/60 dark:shadow-none'
+                    }
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className={
+                          a.destructive
+                            ? 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/70 dark:text-red-400'
+                            : 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                        }
+                        aria-hidden="true"
+                      >
+                        {a.destructive ? <ShieldAlert size={15} /> : <ClipboardCheck size={15} />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className={'text-[12px] font-semibold ' + (a.destructive ? 'text-red-700 dark:text-red-300' : 'text-gray-700 dark:text-slate-200')}>
+                          {a.destructive ? 'Confirmar ação destrutiva' : 'Confirmar ação'}
+                        </p>
+                        <p className="mt-0.5 text-[13px] leading-5 text-gray-600 dark:text-slate-300">{a.summary}</p>
+                        <p className="mt-1.5 flex flex-wrap items-center gap-1">
+                          <span className="badge badge-gray font-mono normal-case tracking-normal">{a.tool}</span>
+                          {a.destructive && <span className="badge badge-danger">irreversível</span>}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => decide(a.id, true)}
+                        disabled={busyId !== null}
+                        className={(a.destructive ? 'btn-danger-solid' : 'btn-primary') + ' btn-sm flex-1'}
+                      >
+                        {busyId === a.id
+                          ? <span aria-hidden="true" className="block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                          : <Check size={13} />}
+                        Confirmar
                       </button>
-                      <button onClick={() => decide(a.id, false)} className="btn-secondary btn-sm flex-1">
+                      <button
+                        onClick={() => decide(a.id, false)}
+                        disabled={busyId !== null}
+                        className="btn-secondary btn-sm flex-1"
+                      >
                         Descartar
                       </button>
                     </div>
@@ -346,7 +443,7 @@ export default function AssistantPanel() {
                     disabled={sending}
                   />
                   <button
-                    onClick={send}
+                    onClick={() => send()}
                     disabled={sending || !input.trim()}
                     aria-label={sending ? 'Enviando mensagem' : 'Enviar mensagem'}
                     className="btn-primary shrink-0 !px-3 disabled:opacity-70"
@@ -358,6 +455,9 @@ export default function AssistantPanel() {
                     )}
                   </button>
                 </div>
+                <p className="mt-2 text-center text-[11px] leading-4 text-gray-400 dark:text-slate-500">
+                  O assistente propõe — você confirma. Nada muda sem confirmação.
+                </p>
               </div>
             </>
           )}

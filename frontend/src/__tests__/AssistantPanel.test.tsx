@@ -102,7 +102,6 @@ describe('AssistantPanel', () => {
     const user = userEvent.setup();
     mockedApi.get.mockImplementation((url: string) => {
       if (url === '/assistant/status') return Promise.resolve({ data: { data: { enabled: true } } });
-      if (url === '/assistant/status') return Promise.resolve({ data: { data: { enabled: true } } });
       if (url === '/assistant/threads') {
         return Promise.resolve({ data: { data: [{ id: 't1', title: 'Aluguel', updatedAt: '' }] } });
       }
@@ -133,5 +132,59 @@ describe('AssistantPanel', () => {
     await user.click(screen.getByRole('button', { name: /Confirmar/ }));
     expect(await screen.findByText('Despesa lançada')).toBeInTheDocument();
     expect(mockedApi.post).toHaveBeenCalledWith('/assistant/actions/a1/confirm', {});
+  });
+
+  it('sugestão na conversa vazia envia a mensagem', async () => {
+    const user = userEvent.setup();
+    mockedApi.post.mockImplementation((url: string) => {
+      if (url === '/assistant/threads') {
+        return Promise.resolve({ data: { data: { id: 't1', title: 'Nova conversa' } } });
+      }
+      return Promise.reject(new Error('unexpected POST ' + url));
+    });
+    const sse = sseStream([
+      {
+        event: 'done',
+        data: { text: 'Vendi R$ 0 este mês.', model: 'kilo-auto/free', actions: [] },
+      },
+    ]);
+    const fetchMock = vi.fn().mockResolvedValue(sse);
+    vi.stubGlobal('fetch', fetchMock);
+    renderPanel();
+    await user.click(screen.getByRole('button', { name: 'Abrir assistente de IA' }));
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
+    await user.click(await screen.findByRole('button', { name: 'Quanto vendi este mês?' }));
+    expect(await screen.findByText('Vendi R$ 0 este mês.')).toBeInTheDocument();
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.message).toBe('Quanto vendi este mês?');
+    vi.unstubAllGlobals();
+  });
+
+  it('cartão destrutivo mostra selo de irreversível', async () => {
+    const user = userEvent.setup();
+    mockedApi.get.mockImplementation((url: string) => {
+      if (url === '/assistant/status') return Promise.resolve({ data: { data: { enabled: true } } });
+      if (url === '/assistant/threads') {
+        return Promise.resolve({ data: { data: [{ id: 't1', title: 'Limpeza', updatedAt: '' }] } });
+      }
+      if (url === '/assistant/threads/t1') {
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 't1',
+              title: 'Limpeza',
+              messages: [{ id: 'm1', role: 'user', content: 'exclua o cliente X' }],
+              actions: [{ id: 'a9', tool: 'client.delete', summary: 'Excluir cliente X', destructive: true, status: 'pending' }],
+            },
+          },
+        });
+      }
+      return Promise.reject(new Error('404'));
+    });
+    renderPanel();
+    await user.click(screen.getByRole('button', { name: 'Abrir assistente de IA' }));
+    await user.click(await screen.findByText('Limpeza'));
+    await waitFor(() => expect(screen.getByText('irreversível')).toBeInTheDocument());
+    expect(screen.getByText('Confirmar ação destrutiva')).toBeInTheDocument();
   });
 });

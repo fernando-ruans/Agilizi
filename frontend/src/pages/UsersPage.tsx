@@ -5,7 +5,7 @@ import api from '../services/api';
 import type { User } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { Field, FieldGrid } from '../components/DetailFields';
 import { formatDate } from '../utils/formatters';
 
@@ -24,6 +24,8 @@ export default function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState<User | null>(null);
   const [viewTarget, setViewTarget] = useState<User | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'operacional' });
 
   useEffect(() => { load(); }, [page, search]);
@@ -54,10 +56,17 @@ export default function UsersPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao salvar'); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Desativar usuário?')) return;
-    try { await api.delete(`/users/${id}`); toast.success('Desativado!'); load(); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setConfirmBusy(true);
+    try {
+      await api.delete(`/users/${deleteTarget.id}`);
+      toast.success('Usuário desativado!');
+      setDeleteTarget(null);
+      load();
+    }
     catch { toast.error('Erro ao desativar'); }
+    finally { setConfirmBusy(false); }
   };
 
   const reset = () => { setSelected(null); setFormData({ name: '', email: '', password: '', role: 'operacional' }); };
@@ -83,7 +92,7 @@ export default function UsersPage() {
       <div className="flex gap-2">
         <button onClick={() => setViewTarget(i)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300" title="Ver detalhes"><Eye size={16} /></button>
         <button onClick={() => { setSelected(i); setFormData({ name: i.name, email: i.email, password: '', role: i.role }); setModalOpen(true); }} className="text-yellow-600 hover:text-yellow-800"><Pencil size={16} /></button>
-        {i.active && <button onClick={() => handleDelete(i.id)} className="text-red-600 hover:text-red-800"><Trash2 size={16} /></button>}
+        {i.active && <button onClick={() => setDeleteTarget(i)} className="text-red-600 hover:text-red-800" title="Desativar"><Trash2 size={16} /></button>}
       </div>
     )},
   ];
@@ -125,6 +134,17 @@ export default function UsersPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Desativar usuário"
+        message={`Desativar "${deleteTarget?.name || 'este usuário'}"?`}
+        details="Ele perde o acesso ao sistema imediatamente. É possível reativar depois."
+        confirmLabel="Desativar"
+        variant="danger"
+        loading={confirmBusy}
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import api from '../services/api';
 import type { Supplier } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { ImageUploader } from '../components/ImageUploader';
 import { ImageGallery } from '../components/ImageGallery';
 import { AddressFields } from '../components/AddressFields';
@@ -21,6 +21,8 @@ export default function SuppliersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState<Supplier | null>(null);
   const [viewTarget, setViewTarget] = useState<Supplier | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const [formData, setFormData] = useState({
     name: '', companyName: '', document: '', email: '', phone: '',
     address: '', city: '', state: '', zipCode: '', notes: '',
@@ -52,10 +54,17 @@ export default function SuppliersPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao salvar'); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Desativar fornecedor?')) return;
-    try { await api.delete(`/suppliers/${id}`); toast.success('Desativado!'); load(); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setConfirmBusy(true);
+    try {
+      await api.delete(`/suppliers/${deleteTarget.id}`);
+      toast.success('Fornecedor desativado!');
+      setDeleteTarget(null);
+      load();
+    }
     catch { toast.error('Erro ao desativar'); }
+    finally { setConfirmBusy(false); }
   };
 
   const reset = () => { setSelected(null); setFormData({ name: '', companyName: '', document: '', email: '', phone: '', address: '', city: '', state: '', zipCode: '', notes: '' }); };
@@ -84,7 +93,7 @@ export default function SuppliersPage() {
       <div className="flex gap-2">
         <button onClick={() => setViewTarget(i)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300" title="Ver detalhes"><Eye size={16} /></button>
         <button onClick={() => { setSelected(i); setFormData({ name: i.name, companyName: i.companyName || '', document: i.document || '', email: i.email || '', phone: i.phone || '', address: i.address || '', city: i.city || '', state: i.state || '', zipCode: i.zipCode || '', notes: i.notes || '' }); setModalOpen(true); }} className="text-yellow-600 hover:text-yellow-800"><Pencil size={16} /></button>
-        <button onClick={() => handleDelete(i.id)} className="text-red-600 hover:text-red-800"><Trash2 size={16} /></button>
+        <button onClick={() => setDeleteTarget(i)} className="text-red-600 hover:text-red-800" title="Desativar"><Trash2 size={16} /></button>
       </div>
     )},
   ];
@@ -155,6 +164,17 @@ export default function SuppliersPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Desativar fornecedor"
+        message={`Desativar "${deleteTarget?.name || 'este fornecedor'}"?`}
+        details="Ele sai das listagens e das compras, mas o histórico é mantido."
+        confirmLabel="Desativar"
+        variant="danger"
+        loading={confirmBusy}
+      />
     </div>
   );
 }

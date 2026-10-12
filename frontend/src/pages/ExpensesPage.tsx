@@ -6,7 +6,7 @@ import api from '../services/api';
 import type { Expense, Supplier } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { Field, FieldGrid } from '../components/DetailFields';
 import { DateRangePicker, DEFAULT_RANGE, rangeParams, type DateRangeValue } from '../components/DateRangePicker';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -39,6 +39,9 @@ export default function ExpensesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [viewTarget, setViewTarget] = useState<Expense | null>(null);
   const [selected, setSelected] = useState<Expense | null>(null);
+  const [payTarget, setPayTarget] = useState<Expense | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const [formData, setFormData] = useState({
     description: '', value: 0, category: 'aluguel', supplierId: '', dueDate: '', status: 'pendente', paymentMethod: '', notes: '',
   });
@@ -88,19 +91,29 @@ export default function ExpensesPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao salvar'); }
   };
 
-  const handlePay = async (id: string) => {
-    if (!confirm('Marcar como pago?')) return;
+  const handlePay = async () => {
+    if (!payTarget) return;
+    setConfirmBusy(true);
     try {
-      await api.put(`/expenses/${id}`, { status: 'pago', paidDate: new Date().toISOString() });
+      await api.put(`/expenses/${payTarget.id}`, { status: 'pago', paidDate: new Date().toISOString() });
       toast.success('Marcada como paga!');
+      setPayTarget(null);
       load();
     } catch { toast.error('Erro ao atualizar'); }
+    finally { setConfirmBusy(false); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Remover despesa?')) return;
-    try { await api.delete(`/expenses/${id}`); toast.success('Removida!'); load(); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setConfirmBusy(true);
+    try {
+      await api.delete(`/expenses/${deleteTarget.id}`);
+      toast.success('Despesa removida!');
+      setDeleteTarget(null);
+      load();
+    }
     catch { toast.error('Erro ao remover'); }
+    finally { setConfirmBusy(false); }
   };
 
   const reset = () => { setSelected(null); setFormData({ description: '', value: 0, category: 'aluguel', supplierId: '', dueDate: '', status: 'pendente', paymentMethod: '', notes: '' }); };
@@ -115,9 +128,9 @@ export default function ExpensesPage() {
     { key: 'actions', label: 'Ações', render: (i: Expense) => (
       <div className="flex gap-2">
         <button onClick={() => setViewTarget(i)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300" title="Ver detalhes"><Eye size={16} /></button>
-        {i.status !== 'pago' && <button onClick={() => handlePay(i.id)} className="text-green-600 hover:text-green-800" title="Marcar como pago"><CheckCircle size={16} /></button>}
+        {i.status !== 'pago' && <button onClick={() => setPayTarget(i)} className="text-green-600 hover:text-green-800" title="Marcar como pago"><CheckCircle size={16} /></button>}
         <button onClick={() => { setSelected(i); setFormData({ description: i.description, value: i.value, category: i.category, supplierId: i.supplierId || '', dueDate: i.dueDate ? i.dueDate.split('T')[0] : '', status: i.status, paymentMethod: i.paymentMethod || '', notes: i.notes || '' }); setModalOpen(true); }} className="text-yellow-600 hover:text-yellow-800"><Pencil size={16} /></button>
-        <button onClick={() => handleDelete(i.id)} className="text-red-600 hover:text-red-800"><Trash2 size={16} /></button>
+        <button onClick={() => setDeleteTarget(i)} className="text-red-600 hover:text-red-800" title="Remover"><Trash2 size={16} /></button>
       </div>
     )},
   ];
@@ -222,6 +235,28 @@ export default function ExpensesPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        isOpen={!!payTarget}
+        onClose={() => setPayTarget(null)}
+        onConfirm={handlePay}
+        title="Marcar como paga"
+        message={`Confirmar o pagamento de "${payTarget?.description || 'esta despesa'}"?`}
+        details="O status muda para pago e o movimento entra no caixa."
+        confirmLabel="Marcar como pago"
+        variant="success"
+        loading={confirmBusy && !!payTarget}
+      />
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Remover despesa"
+        message={`Remover "${deleteTarget?.description || 'esta despesa'}"?`}
+        details="O lançamento e seu movimento no caixa são excluídos. Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        variant="danger"
+        loading={confirmBusy && !!deleteTarget}
+      />
     </div>
   );
 }

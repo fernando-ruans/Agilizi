@@ -8,7 +8,7 @@ import { getPdf, issuerFromCompany } from '../utils/lazyPdf';
 import type { Order, Client, Service, User } from '../types';
 import { PageHeader, SearchBar } from '../components/PageHeader';
 import { DataTable } from '../components/DataTable';
-import { Modal } from '../components/Modal';
+import { Modal, ConfirmDialog } from '../components/Modal';
 import { DateRangePicker, DEFAULT_RANGE, rangeParams, type DateRangeValue } from '../components/DateRangePicker';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
@@ -40,6 +40,8 @@ export default function OrdersPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [selected, setSelected] = useState<Order | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<{ order: Order; status: string } | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const { company } = useAuth();
   const [clientId, setClientId] = useState('');
   const [userId, setUserId] = useState('');
@@ -109,14 +111,22 @@ export default function OrdersPage() {
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao criar'); }
   };
 
-  const handleStatus = async (orderId: string, status: string) => {
-    const labels: Record<string, string> = { em_andamento: 'iniciar', concluida: 'concluir', cancelada: 'cancelar' };
-    if (!confirm(`Deseja ${labels[status] || 'alterar'} esta OS?`)) return;
+  const handleStatusConfirm = async () => {
+    if (!statusTarget) return;
+    setConfirmBusy(true);
     try {
-      await api.post(`/orders/${orderId}/status`, { status });
-      toast.success('Status atualizado!');
+      await api.post(`/orders/${statusTarget.order.id}/status`, { status: statusTarget.status });
+      toast.success(
+        statusTarget.status === 'cancelada'
+          ? 'OS cancelada.'
+          : statusTarget.status === 'concluida'
+            ? 'OS concluída!'
+            : 'OS iniciada!'
+      );
+      setStatusTarget(null);
       load();
     } catch (err: any) { toast.error(err.response?.data?.message || 'Erro ao atualizar'); }
+    finally { setConfirmBusy(false); }
   };
 
   // Exports the OS as a client-ready document (fetches the full record)
@@ -164,9 +174,9 @@ export default function OrdersPage() {
     { key: 'actions', label: 'Ações', render: (i: Order) => (
       <div className="flex gap-2">
         <button onClick={() => { setSelected(i); setViewOpen(true); }} className="text-blue-600 hover:text-blue-800" title="Ver detalhes"><Eye size={16} /></button>
-        {i.status === 'aberta' && <button onClick={() => handleStatus(i.id, 'em_andamento')} className="text-yellow-600 hover:text-yellow-800" title="Iniciar"><Play size={16} /></button>}
-        {i.status === 'em_andamento' && <button onClick={() => handleStatus(i.id, 'concluida')} className="text-green-600 hover:text-green-800" title="Concluir"><CheckCircle size={16} /></button>}
-        {['aberta', 'em_andamento'].includes(i.status) && <button onClick={() => handleStatus(i.id, 'cancelada')} className="text-red-600 hover:text-red-800" title="Cancelar"><XCircle size={16} /></button>}
+        {i.status === 'aberta' && <button onClick={() => setStatusTarget({ order: i, status: 'em_andamento' })} className="text-yellow-600 hover:text-yellow-800" title="Iniciar"><Play size={16} /></button>}
+        {i.status === 'em_andamento' && <button onClick={() => setStatusTarget({ order: i, status: 'concluida' })} className="text-green-600 hover:text-green-800" title="Concluir"><CheckCircle size={16} /></button>}
+        {['aberta', 'em_andamento'].includes(i.status) && <button onClick={() => setStatusTarget({ order: i, status: 'cancelada' })} className="text-red-600 hover:text-red-800" title="Cancelar"><XCircle size={16} /></button>}
       </div>
     )},
   ];
@@ -317,6 +327,31 @@ export default function OrdersPage() {
           </div>
         )}
       </Modal>
+      {statusTarget && (
+        <ConfirmDialog
+          isOpen={!!statusTarget}
+          onClose={() => setStatusTarget(null)}
+          onConfirm={handleStatusConfirm}
+          title={statusTarget.status === 'cancelada' ? 'Cancelar OS' : statusTarget.status === 'concluida' ? 'Concluir OS' : 'Iniciar OS'}
+          message={
+            statusTarget.status === 'cancelada'
+              ? `Cancelar a OS #${String(statusTarget.order.number).padStart(4, '0')}?`
+              : statusTarget.status === 'concluida'
+                ? `Marcar a OS #${String(statusTarget.order.number).padStart(4, '0')} como concluída?`
+                : `Iniciar a execução da OS #${String(statusTarget.order.number).padStart(4, '0')}?`
+          }
+          details={
+            statusTarget.status === 'cancelada'
+              ? 'A OS sai do fluxo de trabalho. Esta ação não pode ser desfeita.'
+              : statusTarget.status === 'concluida'
+                ? 'O serviço é dado como entregue e entra nos relatórios.'
+                : 'O status muda para em andamento.'
+          }
+          confirmLabel={statusTarget.status === 'cancelada' ? 'Cancelar OS' : statusTarget.status === 'concluida' ? 'Concluir' : 'Iniciar'}
+          variant={statusTarget.status === 'cancelada' ? 'danger' : statusTarget.status === 'concluida' ? 'success' : 'default'}
+          loading={confirmBusy}
+        />
+      )}
     </div>
   );
 }

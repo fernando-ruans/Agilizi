@@ -113,4 +113,21 @@ describe('ConfirmDialog', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('mostra detalhes complementares quando informados', () => {
+    render(
+      <ConfirmDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+        title="Remover transação"
+        message={'Remover "Aluguel"?'}
+        details="O lançamento sai do extrato e dos totais."
+        confirmLabel="Remover"
+        variant="danger"
+      />
+    );
+    expect(screen.getByText('O lançamento sai do extrato e dos totais.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remover' })).toBeInTheDocument();
+  });
 });
