@@ -2,6 +2,15 @@
 
 > Registro das principais mudanças após cada alteração, para visualização e compreensão futura.
 
+## [2026-10-12] — Lote 12: assistente de IA (estilo Kilo Code auto/free)
+
+### `feat` — Bot em painel flutuante com contexto total e escrita confirmada
+- POST /api/v1/assistant/*: threads e mensagens salvas por empresa (AssistantThread/Message/Action), chat em SSE atrás do JWT, confirmação que executa em um clique, teto diário por empresa e flag AI_BOT_ENABLED.
+- Cadeia auto/free via env (AI_CHAIN, primeira implementação Gemini gratuito): primeiro modelo disponível responde, demais são fallback; sem chave, degradação educada sem alterar nada.
+- 25 ferramentas escopadas por companyId espelhando controllers (estoque, caixa, contadores, transições de OS); escrita só após confirmação explícita, inclusive excluir/estornar.
+- Frontend: AssistantPanel montado no Layout (todas as telas), streaming, cartões de confirmação, histórico e estado desativado — claro e escuro, sem dependências novas.
+- Validação: typecheck limpo, 140/144 backend (4 falhas pré-existentes de fuso em dateRange), 83/83 frontend, e2e do assistente verde.
+
 ## [2026-10-05] — Lote 11: deploy Render (debug)
 
 ### `fix` — Build instalava só `dependencies` (`render.yaml`)

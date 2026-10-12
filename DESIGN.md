@@ -37,7 +37,9 @@
 
 - `Brand` (marca), `AuthShell` (moldura única de login/cadastro: coluna
   centralizada, lockup no topo, linha de garantia no rodapé — sem painel
-  de marketing), `PageHeader` (título único por página), `DataTable` (lista + vazio + paginação), `Modal`/`ConfirmDialog` (Escape fecha),
+  de marketing), `AssistantPanel` (bot flutuante + gaveta do bot de IA:
+  tokens .btn/.input/.card, claro e escuro, sem dependências novas),
+  `PageHeader` (título único por página), `DataTable` (lista + vazio + paginação), `Modal`/`ConfirmDialog` (Escape fecha),
   `DateRangePicker` (mês vigente por padrão), `AddressFields` (CEP com
   fallback manual), `ImageUploader`/`ImageGallery`, `Loading`/`SkeletonCard`.
 - Fluxo novo reaproveita estes donos; nada de implementação equivalente

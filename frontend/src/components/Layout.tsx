@@ -27,6 +27,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Brand from './Brand';
+import AssistantPanel from './AssistantPanel';
 
 const iconMap: Record<string, React.ElementType> = {
   LayoutDashboard, Users, Truck, Wrench, FileText, ClipboardList,
@@ -118,6 +119,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const initials = user?.name?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() || '?';
 
   return (
+    <>
     <div className="flex h-screen bg-[#f8f9fb] dark:bg-slate-950">
       {/* Mobile backdrop */}
       {mobileOpen && (
@@ -261,5 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </footer>
       </div>
     </div>
+    <AssistantPanel />
+    </>
   );
 }

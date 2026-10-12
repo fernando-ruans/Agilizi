@@ -44,6 +44,7 @@ model Company {
   expenses      Expense[]
   companySettings CompanySetting[]
   images        Image[]
+  assistantThreads AssistantThread[]
 
   @@map("companies")
 }
@@ -430,4 +431,59 @@ model Image {
   @@index([ownerType, ownerId])
   @@index([companyId])
   @@map("images")
+}
+
+// Assistente de IA — conversas salvas por empresa. As chaves de API dos
+// provedores nunca saem do .env do backend; aqui vivem só threads,
+// mensagens e ações propostas (mutação só executa após confirmação
+// explícita do usuário — ver AssistantAction.status).
+model AssistantThread {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String
+  title     String   @default("Nova conversa")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  messages AssistantMessage[]
+  actions  AssistantAction[]
+
+  @@index([companyId])
+  @@map("assistant_threads")
+}
+
+model AssistantMessage {
+  id       String @id @default(cuid())
+  threadId String
+  role     String // "user" | "assistant"
+  content  String
+  model    String?
+  createdAt DateTime @default(now())
+
+  thread AssistantThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@map("assistant_messages")
+}
+
+model AssistantAction {
+  id       String @id @default(cuid())
+  threadId String
+  companyId String
+  userId   String
+  // Ex.: "sale.create" | "expense.create" | "client.update" | "product.delete"
+  tool     String
+  args     String // JSON validado contra o schema da ferramenta
+  summary  String // descrição curta em pt-BR exibida no cartão de confirmação
+  status   String @default("pending") // pending | confirmed | rejected | executed | failed
+  result   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread AssistantThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([companyId])
+  @@map("assistant_actions")
 }

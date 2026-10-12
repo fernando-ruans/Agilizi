@@ -27,6 +27,7 @@ import saleRoutes from './routes/sale.routes';
 import uploadRoutes from './routes/upload.routes';
 import cepRoutes from './routes/cep.routes';
 import reportRoutes from './routes/report.routes';
+import assistantRoutes from './routes/assistant.routes';
 
 const app = express();
 
@@ -101,6 +102,7 @@ app.use(`${apiPrefix}/sales`, saleRoutes);
 app.use(`${apiPrefix}/uploads`, uploadRoutes);
 app.use(`${apiPrefix}/cep`, cepRoutes);
 app.use(`${apiPrefix}/reports`, reportRoutes);
+app.use(`${apiPrefix}/assistant`, assistantRoutes);
 
 // Uploaded images (static, unguessable UUID filenames — see plan/risks)
 app.use('/uploads', express.static(config.uploadsDir));
