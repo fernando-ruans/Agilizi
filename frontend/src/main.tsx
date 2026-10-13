@@ -6,6 +6,7 @@ import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import '@fontsource-variable/inter';
+import '@fontsource-variable/fraunces';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
